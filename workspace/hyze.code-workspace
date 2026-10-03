@@ -1,0 +1,30 @@
+{
+  "folders": [
+    { "name": "workspace", "path": "." },
+    { "name": "hyze-ui", "path": "hyze-ui" },
+    { "name": "hyze-hub", "path": "hyze-hub" },
+    { "name": "hyze-sites", "path": "hyze-sites" },
+    { "name": "hyze-consultoria", "path": "hyze-consultoria" },
+    { "name": "hyze-leads-api", "path": "hyze-leads-api" },
+    { "name": ".github", "path": ".github" }
+  ],
+  "settings": {
+    "files.exclude": {
+      "hyze-*": true,
+      ".github": true
+    },
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[astro]": { "editor.defaultFormatter": "astro-build.astro-vscode" },
+    "files.eol": "\n"
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "astro-build.astro-vscode",
+      "bradlc.vscode-tailwindcss",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode"
+    ]
+  }
+}

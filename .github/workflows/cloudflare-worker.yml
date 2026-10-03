@@ -1,0 +1,49 @@
+# Workflow reutilizável: testa e publica um Worker da Hyze (com migrações D1 opcionais).
+# Uso: jobs: api: uses: hyzecompany/.github/.github/workflows/cloudflare-worker.yml@main
+#      with: { d1-database: hyze-leads }   secrets: inherit
+name: Cloudflare Worker
+
+on:
+  workflow_call:
+    inputs:
+      d1-database:
+        description: Nome do banco D1 para aplicar migrações antes do deploy (vazio = não aplica)
+        type: string
+        default: ""
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm check
+      - run: pnpm test
+
+  deploy:
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Aplicar migrações D1
+        if: inputs.d1-database != ''
+        run: pnpm exec wrangler d1 migrations apply ${{ inputs.d1-database }} --remote
+      - name: Publicar Worker
+        run: pnpm run deploy
