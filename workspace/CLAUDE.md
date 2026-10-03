@@ -1,6 +1,6 @@
 # Hyze — guia do workspace (Claude no VS Code e Claude no Cowork)
 
-Esta pasta (`Documents\Desenvolvimentos\hyze`) reúne **um repositório por empresa do grupo**,
+Esta pasta (`Documents\Desenvolvimentos\hyzecompany`) reúne **um repositório por empresa do grupo**,
 todos na organização GitHub **`hyzecompany`**. Leia este guia antes de qualquer tarefa; cada
 repositório tem também o seu `CLAUDE.md` com detalhes específicos.
 

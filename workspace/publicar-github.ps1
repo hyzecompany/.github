@@ -8,7 +8,7 @@
       repositórios sozinho.
   Também precisa do pnpm (npm i -g pnpm@10).
 
-  Uso (no terminal do VS Code, dentro da pasta "hyze"):
+  Uso (no terminal do VS Code, dentro da pasta "hyzecompany"):
     powershell -ExecutionPolicy Bypass -File .\publicar-github.ps1
     # repositórios privados (atenção: no plano grátis, segredos da organização não chegam a repos privados):
     powershell -ExecutionPolicy Bypass -File .\publicar-github.ps1 -Visibility private
