@@ -1,10 +1,12 @@
 ﻿<#
   Cria os repositórios da Hyze na organização do GitHub e faz o primeiro push, na ordem certa.
 
-  Pré-requisitos (uma vez):
-    winget install GitHub.cli
-    gh auth login          # escolha GitHub.com > HTTPS > login pelo navegador
-    npm i -g pnpm@10       # se ainda não tiver o pnpm
+  Funciona de dois jeitos:
+    - Só com o Git: crie antes os repositórios VAZIOS no site do GitHub (o script lista quais
+      faltam e o link); o login acontece pelo navegador no primeiro push (Git Credential Manager).
+    - Com o GitHub CLI (opcional: winget install GitHub.cli; gh auth login): o script cria os
+      repositórios sozinho.
+  Também precisa do pnpm (npm i -g pnpm@10).
 
   Uso (no terminal do VS Code, dentro da pasta "hyze"):
     powershell -ExecutionPolicy Bypass -File .\publicar-github.ps1
@@ -18,7 +20,9 @@ param(
   [ValidateSet("public", "private")][string]$Visibility = "public"
 )
 
-$ErrorActionPreference = "Stop"
+# "Continue": no Windows PowerShell 5.1, mensagens normais do git no stderr não devem abortar;
+# cada comando é conferido pelo código de saída ($LASTEXITCODE).
+$ErrorActionPreference = "Continue"
 $Root = $PSScriptRoot
 
 function Run([string]$cmd) {
@@ -27,15 +31,47 @@ function Run([string]$cmd) {
   if ($LASTEXITCODE -ne 0) { throw "Falhou: $cmd" }
 }
 
+$HasGh = [bool](Get-Command gh -ErrorAction SilentlyContinue)
+if ($HasGh) { gh auth status *> $null; if ($LASTEXITCODE -ne 0) { $HasGh = $false } }
+
+$AllRepos = [ordered]@{
+  ".github"          = "Perfil da organização e workflows compartilhados"
+  "hyze-ui"          = "Design system Hyze: tokens, componentes, layout e animações"
+  "hyze-hub"         = "Site do grupo Hyze (hyzecompany.com.br)"
+  "hyze-sites"       = "Hyze Sites — criação de sites (sites.hyzecompany.com.br)"
+  "hyze-consultoria" = "Hyze Consultoria — consultoria em TI (consultoria.hyzecompany.com.br)"
+  "hyze-leads-api"   = "API de leads dos sites Hyze (Hono + D1 + Turnstile)"
+}
+
+function RepoExists([string]$Name) {
+  # Só consulta; não abre janela de login (repos privados aparecem se o login já estiver salvo).
+  $env:GIT_TERMINAL_PROMPT = "0"; $env:GCM_INTERACTIVE = "never"
+  try {
+    git ls-remote "https://github.com/$Org/$Name.git" *> $null
+    return ($LASTEXITCODE -eq 0)
+  } finally {
+    Remove-Item Env:GIT_TERMINAL_PROMPT, Env:GCM_INTERACTIVE -ErrorAction SilentlyContinue
+  }
+}
+
+if (-not $HasGh) {
+  Write-Host "GitHub CLI não encontrado: usando só o Git." -ForegroundColor DarkYellow
+  $missing = @($AllRepos.Keys | Where-Object { -not (RepoExists $_) })
+  if ($missing.Count -gt 0) {
+    Write-Host "`nCrie estes repositórios VAZIOS (sem README, sem .gitignore, sem licença)" -ForegroundColor Yellow
+    Write-Host "em https://github.com/organizations/$Org/repositories/new  — visibilidade: $Visibility`n"
+    foreach ($m in $missing) { Write-Host ("  - {0,-18} {1}" -f $m, $AllRepos[$m]) }
+    Write-Host "`nDepois rode este script de novo."
+    exit 1
+  }
+}
+
 function Publish([string]$Name, [string]$Description) {
   Write-Host "`n=== $Org/$Name ===" -ForegroundColor Cyan
   Push-Location (Join-Path $Root $Name)
   try {
-    gh repo view "$Org/$Name" *> $null
-    if ($LASTEXITCODE -ne 0) {
+    if ($HasGh -and -not (RepoExists $Name)) {
       Run "gh repo create $Org/$Name --$Visibility --description `"$Description`""
-    } else {
-      Write-Host "  repositório já existe" -ForegroundColor DarkYellow
     }
     git remote get-url origin *> $null
     if ($LASTEXITCODE -ne 0) { Run "git remote add origin https://github.com/$Org/$Name.git" }
@@ -43,14 +79,11 @@ function Publish([string]$Name, [string]$Description) {
   } finally { Pop-Location }
 }
 
-gh auth status
-if ($LASTEXITCODE -ne 0) { throw "Faça login primeiro: gh auth login" }
-
 # 1) Perfil da organização + workflows reutilizáveis (os outros repos dependem deles)
-Publish ".github" "Perfil da organização e workflows compartilhados"
+Publish ".github" $AllRepos[".github"]
 
 # 2) Design system + tag de versão (os sites instalam por tag)
-Publish "hyze-ui" "Design system Hyze: tokens, componentes, layout e animações"
+Publish "hyze-ui" $AllRepos["hyze-ui"]
 Push-Location (Join-Path $Root "hyze-ui")
 try {
   $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
@@ -60,11 +93,6 @@ try {
 } finally { Pop-Location }
 
 # 3) Sites: gera o lockfile já apontando para o hyze-ui publicado, commita e publica
-$sites = @{
-  "hyze-hub"         = "Site do grupo Hyze (hyzecompany.com.br)"
-  "hyze-sites"       = "Hyze Sites — criação de sites (sites.hyzecompany.com.br)"
-  "hyze-consultoria" = "Hyze Consultoria — consultoria em TI (consultoria.hyzecompany.com.br)"
-}
 foreach ($name in @("hyze-hub", "hyze-sites", "hyze-consultoria")) {
   Push-Location (Join-Path $Root $name)
   try {
@@ -76,11 +104,11 @@ foreach ($name in @("hyze-hub", "hyze-sites", "hyze-consultoria")) {
       Run "git commit -m `"chore: lockfile com @hyze/ui publicado`" -m `"Agente: vscode`""
     }
   } finally { Pop-Location }
-  Publish $name $sites[$name]
+  Publish $name $AllRepos[$name]
 }
 
 # 4) API de leads
-Publish "hyze-leads-api" "API de leads dos sites Hyze (Hono + D1 + Turnstile)"
+Publish "hyze-leads-api" $AllRepos["hyze-leads-api"]
 
 Write-Host "`nPronto! Veja em https://github.com/$Org" -ForegroundColor Green
 Write-Host "Próximo passo: em github.com/organizations/$Org/settings/secrets/actions crie os segredos"
