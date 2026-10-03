@@ -1,12 +1,33 @@
 {
   "folders": [
-    { "name": "workspace", "path": "." },
-    { "name": "hyze-ui", "path": "hyze-ui" },
-    { "name": "hyze-hub", "path": "hyze-hub" },
-    { "name": "hyze-sites", "path": "hyze-sites" },
-    { "name": "hyze-consultoria", "path": "hyze-consultoria" },
-    { "name": "hyze-leads-api", "path": "hyze-leads-api" },
-    { "name": ".github", "path": ".github" }
+    {
+      "name": "workspace",
+      "path": "."
+    },
+    {
+      "name": "hyze-ui",
+      "path": "hyze-ui"
+    },
+    {
+      "name": "hyze-hub",
+      "path": "hyze-hub"
+    },
+    {
+      "name": "hyze-sites",
+      "path": "hyze-sites"
+    },
+    {
+      "name": "hyze-consultoria",
+      "path": "hyze-consultoria"
+    },
+    {
+      "name": "hyze-leads-api",
+      "path": "hyze-leads-api"
+    },
+    {
+      "name": ".github",
+      "path": ".github"
+    }
   ],
   "settings": {
     "files.exclude": {
@@ -15,7 +36,9 @@
     },
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "[astro]": { "editor.defaultFormatter": "astro-build.astro-vscode" },
+    "[astro]": {
+      "editor.defaultFormatter": "astro-build.astro-vscode"
+    },
     "files.eol": "\n"
   },
   "extensions": {
@@ -25,6 +48,150 @@
       "bradlc.vscode-tailwindcss",
       "dbaeumer.vscode-eslint",
       "esbenp.prettier-vscode"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "instalar: hyze-ui",
+        "type": "shell",
+        "command": "pnpm install",
+        "options": {
+          "cwd": "${workspaceFolder:hyze-ui}"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "instalar: hyze-hub",
+        "type": "shell",
+        "command": "pnpm install",
+        "options": {
+          "cwd": "${workspaceFolder:hyze-hub}"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "instalar: hyze-sites",
+        "type": "shell",
+        "command": "pnpm install",
+        "options": {
+          "cwd": "${workspaceFolder:hyze-sites}"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "instalar: hyze-consultoria",
+        "type": "shell",
+        "command": "pnpm install",
+        "options": {
+          "cwd": "${workspaceFolder:hyze-consultoria}"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "instalar: hyze-leads-api",
+        "type": "shell",
+        "command": "pnpm install",
+        "options": {
+          "cwd": "${workspaceFolder:hyze-leads-api}"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Hyze: instalar dependências",
+        "dependsOrder": "sequence",
+        "dependsOn": [
+          "instalar: hyze-ui",
+          "instalar: hyze-hub",
+          "instalar: hyze-sites",
+          "instalar: hyze-consultoria",
+          "instalar: hyze-leads-api"
+        ],
+        "problemMatcher": []
+      },
+      {
+        "label": "dev: catálogo UI (4320)",
+        "type": "shell",
+        "command": "pnpm dev",
+        "options": {
+          "cwd": "${workspaceFolder:hyze-ui}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "hyze-dev",
+          "panel": "dedicated"
+        }
+      },
+      {
+        "label": "dev: hub (4321)",
+        "type": "shell",
+        "command": "pnpm dev",
+        "options": {
+          "cwd": "${workspaceFolder:hyze-hub}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "hyze-dev",
+          "panel": "dedicated"
+        }
+      },
+      {
+        "label": "dev: sites (4322)",
+        "type": "shell",
+        "command": "pnpm dev",
+        "options": {
+          "cwd": "${workspaceFolder:hyze-sites}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "hyze-dev",
+          "panel": "dedicated"
+        }
+      },
+      {
+        "label": "dev: consultoria (4323)",
+        "type": "shell",
+        "command": "pnpm dev",
+        "options": {
+          "cwd": "${workspaceFolder:hyze-consultoria}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "hyze-dev",
+          "panel": "dedicated"
+        }
+      },
+      {
+        "label": "dev: API de leads (8787)",
+        "type": "shell",
+        "command": "pnpm dev:local",
+        "options": {
+          "cwd": "${workspaceFolder:hyze-leads-api}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "group": "hyze-dev",
+          "panel": "dedicated"
+        }
+      },
+      {
+        "label": "Hyze: rodar tudo",
+        "dependsOrder": "parallel",
+        "dependsOn": [
+          "dev: API de leads (8787)",
+          "dev: hub (4321)",
+          "dev: sites (4322)",
+          "dev: consultoria (4323)",
+          "dev: catálogo UI (4320)"
+        ],
+        "problemMatcher": []
+      }
     ]
   }
 }

@@ -35,6 +35,32 @@ Dois agentes editam estas pastas: **Claude no VS Code** (local) e **Claude no Co
 - O Claude do Cowork não tem as credenciais do GitHub: **quem faz `git push` é o Claude do VS Code**
   (ou o Gabriel). O Cowork commita localmente e avisa no HANDOFF que falta o push.
 
+## 2.1 Rodar tudo localmente
+
+No VS Code, abra `hyze.code-workspace` e use **Terminal → Executar Tarefa**:
+
+1. `Hyze: instalar dependências` (uma vez, e sempre que mudar dependências).
+2. `Hyze: rodar tudo` — sobe tudo em paralelo, com recarga ao salvar:
+
+| Endereço | O quê |
+| --- | --- |
+| http://localhost:4321 | hub (site do grupo) |
+| http://localhost:4322 | Hyze Sites |
+| http://localhost:4323 | Hyze Consultoria |
+| http://localhost:4320 | catálogo do design system (hyze-ui) |
+| http://localhost:8787/health | API de leads (banco D1 local) |
+
+Em dev os formulários enviam para a API local (`.env.development` de cada site + `.dev.vars` da
+API, com as chaves de teste do Turnstile). Leads locais:
+`pnpm exec wrangler d1 execute hyze-leads --local --command "SELECT * FROM leads"` (no hyze-leads-api).
+
+## 2.2 Publicar
+
+- Código no GitHub: `publicar-github.ps1` (primeira vez) e depois `git push` normal.
+- Site no ar (Cloudflare): `colocar-no-ar.ps1` — cria/usa o D1, aplica migrações, grava o segredo do
+  Turnstile, publica a API e os 3 sites. Depois disso, o deploy contínuo pode ser pelo GitHub
+  Actions (segredos `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` na organização).
+
 ## 3. Mudando o design system (hyze-ui)
 
 1. Altere em `hyze-ui`, teste no catálogo (`pnpm dev` dentro de `hyze-ui`).
